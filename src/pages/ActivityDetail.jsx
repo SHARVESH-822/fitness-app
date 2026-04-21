@@ -1,31 +1,33 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext';
+import { useParams, useNavigate } from "react-router-dom";
+import { useAppContext, isValid } from "../context/AppContext";
 
-const ActivityDetail = () => {
+export default function ActivityDetail() {
   const { id } = useParams();
-  const { state } = useAppContext();
+  const { activities } = useAppContext();
   const navigate = useNavigate();
+  const activity = activities.find(a => a.id === parseInt(id));
 
-  const a = state.activities.find(a => String(a.activityId) === String(id));
+  if (!activity || !isValid(activity)) {
+    return (
+      <div style={{ padding: "16px" }}>
+        <p>Activity not found</p>
+        <button onClick={() => navigate("/activities")}>Back</button>
+      </div>
+    );
+  }
 
-  if (!a) return <div><p>Activity not found!</p><button onClick={() => navigate('/activities')}>Back</button></div>;
-
-  const efficiency = (a.caloriesBurned / a.workoutMinutes).toFixed(2);
+  const efficiency = (activity.caloriesBurned / activity.workoutMinutes).toFixed(2);
 
   return (
-    <div>
-      <h2>Activity Detail</h2>
-      <p>ID: {a.activityId}</p>
-      <p>Name: {a.name || 'Unknown'}</p>
-      <p>Steps: {a.steps}</p>
-      <p>Calories: {a.caloriesBurned}</p>
-      <p>Minutes: {a.workoutMinutes}</p>
-      <p>Goal: {a.goalAchieved ? 'Achieved' : 'Not Achieved'}</p>
-      <p>Date: {a.date || 'No Date'}</p>
-      <p><b>Efficiency Score: {efficiency}</b></p>
-      <button onClick={() => navigate('/activities')}>Back</button>
+    <div style={{ padding: "16px" }}>
+      <h1>{activity.name || "Unknown"}</h1>
+      <p>Date: {activity.date || "No Date"}</p>
+      <p>Steps: {activity.steps}</p>
+      <p>Calories Burned: {activity.caloriesBurned}</p>
+      <p>Workout Minutes: {activity.workoutMinutes}</p>
+      <p>Goal Achieved: {activity.goalAchieved ? "✅ Yes" : "❌ No"}</p>
+      <h3>Efficiency Score: {efficiency} cal/min</h3>
+      <button onClick={() => navigate("/activities")}>Back</button>
     </div>
   );
-};
-
-export default ActivityDetail;
+}

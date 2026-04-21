@@ -1,31 +1,36 @@
-import { useState } from 'react';
-import { useAppContext } from '../context/AppContext';
+import { useState } from "react";
+import { useAppContext, isValid } from "../context/AppContext";
+import ActivityCard from "../components/ActivityCard";
 
-const Filter = () => {
-  const { state } = useAppContext();
-  const [filter, setFilter] = useState('all');
+export default function Filter() {
+  const { activities } = useAppContext();
+  const [input, setInput] = useState("");
+  const [error, setError] = useState("");
+  const [filtered, setFiltered] = useState(null);
 
-  const filtered = filter === 'all' ? state.activities
-    : filter === 'achieved' ? state.activities.filter(a => a.goalAchieved === true)
-    : state.activities.filter(a => a.goalAchieved === false);
+  function handleFilter() {
+    if (input === "") { setError("Input cannot be empty"); return; }
+    const val = Number(input);
+    if (isNaN(val) || val < 0) { setError("Invalid input value"); return; }
+    setError("");
+    const valid = activities.filter(isValid);
+    setFiltered(valid.filter(a => a.steps >= val));
+  }
 
   return (
-    <div>
-      <h2>Filter Activities</h2>
-      <select data-testid="filter-input" value={filter}
-        onChange={e => setFilter(e.target.value)}>
-        <option value="all">All</option>
-        <option value="achieved">Goal Achieved</option>
-        <option value="not-achieved">Goal Not Achieved</option>
-      </select>
-      {filtered.map(a => (
-        <div key={a.activityId}>
-          <p>{a.name} — {a.goalAchieved ? 'Achieved' : 'Not Achieved'}</p>
-          <hr/>
-        </div>
-      ))}
+    <div style={{ padding: "16px" }}>
+      <h1>Filter Activities</h1>
+      <input
+        type="number"
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        placeholder="Enter minimum steps"
+        style={{ padding: "8px", marginRight: "8px" }}
+      />
+      <button onClick={handleFilter}>Filter</button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {filtered && filtered.length === 0 && <p>No activities found.</p>}
+      {filtered && filtered.map(a => <ActivityCard key={a.id} activity={a} />)}
     </div>
   );
-};
-
-export default Filter;
+}

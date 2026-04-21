@@ -1,26 +1,27 @@
-import { useEffect } from 'react';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext, isValid } from "../context/AppContext";
 
-const Stats = () => {
-  const { state } = useAppContext();
-  const activities = state.activities;
+export default function Stats() {
+  const { activities } = useAppContext();
 
-  const totalActivities      = activities.length;
-  const goalAchievedCount    = activities.filter(a => a.goalAchieved === true).length;
-  const goalNotAchievedCount = activities.filter(a => a.goalAchieved === false).length;
+  const stats = activities.reduce((acc, a) => {
+    if (!isValid(a)) return acc;
+    acc.totalActivities += 1;
+    if (a.goalAchieved === true) acc.goalAchievedCount += 1;
+    else acc.goalNotAchievedCount += 1;
+    return acc;
+  }, { totalActivities: 0, goalAchievedCount: 0, goalNotAchievedCount: 0 });
 
-  useEffect(() => {
-    window.appState = { totalActivities, goalAchievedCount, goalNotAchievedCount };
-  }, [activities]);
+  window.appState = stats;
 
   return (
-    <div>
-      <h2>Stats</h2>
-      <p>Total: <span data-testid="total-activities">{totalActivities}</span></p>
-      <p>Goal Achieved: <span data-testid="goal-achieved">{goalAchievedCount}</span></p>
-      <p>Goal Not Achieved: <span data-testid="goal-not-achieved">{goalNotAchievedCount}</span></p>
+    <div style={{ padding: "16px" }}>
+      <h1>Activities Analytics Dashboard</h1>
+      <div data-testid="total-activities">{stats.totalActivities}</div>
+      <div data-testid="goal-achieved">{stats.goalAchievedCount}</div>
+      <div data-testid="goal-not-achieved">{stats.goalNotAchievedCount}</div>
+      <p>Total Valid Activities: <strong>{stats.totalActivities}</strong></p>
+      <p>Goal Achieved: <strong>{stats.goalAchievedCount}</strong></p>
+      <p>Goal Not Achieved: <strong>{stats.goalNotAchievedCount}</strong></p>
     </div>
   );
-};
-
-export default Stats;
+}
